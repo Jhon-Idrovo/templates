@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap");
+
+body {
+  font-family: "Manrope", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+    Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  line-height: 1.5;
+  font-size: 16px;
+  background-color: var(--bg-base);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  text-decoration: none;
+  outline: none;
+}
+
+/* SCROLLBAR */
+/* width */
+::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--bg-btn);
+  border-radius: 5px;
+}
+
+.nav-bar {
+  @apply flex content-center justify-between h-16 px-8 py-2 bg-primary text-txt-primary;
+}
+/* .nav-logo {
+  @apply absolute left-4;
+} */
+
+/* NAV MENU */
+.nav-menu {
+  @apply relative flex justify-center items-center w-8 h-8 rounded-full bg-secondary;
+}
+
+/* menu lines */
+.nav-menu > div {
+  @apply relative bg-txt-secondary w-6 transition-all;
+  height: 2px;
+}
+.nav-menu > div::before,
+.nav-menu > div::after {
+  @apply absolute bg-txt-secondary transition-all;
+  content: "";
+  width: 1rem;
+  height: 2px;
+  top: 0.5rem;
+  left: 0.25rem;
+}
+.nav-menu > div::after {
+  top: -0.5rem;
+}
+#menu-check {
+  @apply w-full h-full absolute opacity-10 z-10;
+}
+
+#menu-check:checked + div {
+  transform: rotate(135deg);
+}
+#menu-check:checked + div::before,
+#menu-check:checked + div::after {
+  top: 0;
+  left: 0;
+  width: 100%;
+  transform: rotate(90deg);
+}
+
+#menu-check:checked ~ ul {
+  transform: translate(0, 0);
+}
+/* menu list */
+.nav-list {
+  @apply fixed right-0 top-16 w-full overflow-y-scroll flex flex-col justify-center items-center transition-all bottom-0 bg-base;
+  transform: translate(100%, -100%);
+}
+.nav-list li {
+  @apply w-max m-4 font-medium text-2xl hover:border-opacity-100 border-opacity-0 border-txt-base border-solid border-b-2;
+}
+
+.btn-base {
+  @apply rounded-full p-2 hover:bg-primary hover:text-secondary border-secondary border-solid bg-secondary text-txt-secondary;
+  border-width: 1px;
+}
+
+/* LANDING PAGE */
+.sec-1 {
+  background-image: url("https://assets.website-files.com/5faabe4b6f6b4331a5f27952/603fa29994675e4e5487a831_Hero_Original-min-p-500.png");
+  background-repeat: no-repeat;
+  background-position: 300px 0px;
+  @apply w-full;
+}
+.heading-2 {
+  @apply text-2xl font-medium px-2 py-4 mt-4;
+}
+
+p {
+  @apply text-lg;
+}
