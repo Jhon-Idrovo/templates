@@ -17,15 +17,12 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "helmet": "^4.6.0",
-    "jsonwebtoken": "^8.5.1",
-    "mongodb": "^3.6.9",
-    "mongoose": "^5.13.5"
+    "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.10",
     "@types/express": "^4.17.12",
     "@types/jest": "^26.0.24",
-    "@types/mongodb": "^3.6.19",
     "@types/morgan": "^1.9.3",
     "@types/node": "^15.14.0",
     "jest": "^27.0.6",
