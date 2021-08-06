@@ -9,6 +9,7 @@ export default async function initializeRoles() {
     const userRole = new Role({ name: "User" });
 
     await Promise.all([adminRole.save(), userRole.save()]);
+    console.log("Roles initialized succesfully");
   } catch (error) {
     console.log("An error happened while creating roles", error);
     process.exit(1);

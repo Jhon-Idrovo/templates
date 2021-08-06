@@ -1,13 +1,14 @@
 import jwt, { Secret } from "jsonwebtoken";
-import { tokenLifetime } from "../config";
+import { RoleName } from "../../interfaces/roles";
+import { accessTokenLifetime, refreshTokenLifetime } from "../config";
 /**
  *
  * @param userId the generated user id
- * @returns jwt token
+ * @returns jwt access token with user roles and id as payload
  */
-export function generateClientToken(userId: string) {
+export function generateAccessToken(userId: string, role: RoleName[]) {
   return jwt.sign({ userId }, process.env.JWT_TOKEN_SECRET as Secret, {
-    expiresIn: tokenLifetime,
+    expiresIn: accessTokenLifetime,
   });
 }
 /**
@@ -22,4 +23,10 @@ export function verifyToken(token: string) {
   } catch (error) {
     return false;
   }
+}
+
+export function generateRefreshToken(userId: string) {
+  return jwt.sign({ userId }, process.env.JWT_TOKEN_SECRET as Secret, {
+    expiresIn: refreshTokenLifetime,
+  });
 }

@@ -5,10 +5,11 @@
 import { NextFunction, Request, Response } from "express";
 import Role from "../models/Role";
 import User from "../models/User";
-import { generateClientToken } from "../utils/utils";
+import { generateAccessToken } from "../utils/utils";
 /**
  * Verifies username and password against the database. If good, returns an object
- * with a jwt token and the user role to the client
+ * with an access token and refresh token. The user roles are send in the payload of the
+ * access token.
  * @param req
  * @param res
  * @param next
@@ -25,13 +26,35 @@ export async function signInHandler(
       //compare passwords
       return (await user.comparePassword(user.password, password))
         ? res.status(200).json({
-            token: generateClientToken(user._id),
+            accessToken: generateAccessToken(
+              user._id,
+              user.roles.map((role) => role.name)
+            ),
+            //this is optional, you should not rely on this to grant access because it's easy to modify
+            //use the access token payload instead
             roles: user.roles.map((role) => role.name),
           })
         : res.json({ error: "Invalid password", token: null });
     }
   } catch (error) {
     return res.status(400).json({ error });
+  }
+}
+
+/**
+ * Takes in a refresh token and sends back a new access token if the
+ * first is valid.
+ * @param req
+ * @param res
+ * @param next
+ */
+export async function getRefreshTokenHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const refreshToken = req.headers["x-refresh-token"];
+  if (refreshToken) {
   }
 }
 /**
@@ -56,7 +79,13 @@ export async function signUpHandler(
       password: await User.encryptPassword(password),
       roles: [userRole?._id],
     }).save();
-    return res.status(201).json({ token: generateClientToken(user._id) });
+    user.populate("roles");
+    return res.status(201).json({
+      accessToken: generateAccessToken(
+        user._id,
+        user.roles.map((role) => role.name)
+      ),
+    });
   } catch (error) {
     return res.status(400).json({ error });
   }
@@ -86,7 +115,9 @@ export async function createAdminHandler(
         roles: [adminRole?._id],
       }).save();
 
-      return res.status(201).json({ token: generateClientToken(admin._id) });
+      return res
+        .status(201)
+        .json({ accessToken: generateAccessToken(admin._id, ["Admin"]) });
     }
     res.json({ error: "Admin access password invalid" });
   } catch (error) {

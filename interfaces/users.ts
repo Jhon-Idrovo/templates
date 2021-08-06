@@ -1,9 +1,10 @@
 import { Model } from "mongoose";
+import { RoleName } from "./roles";
 export declare interface UserIfc {
   username: string;
   password: string;
   email: string;
-  roles: [{ name: string; _id: string }];
+  roles: [{ name: RoleName; _id: string }];
   comparePassword: Function;
 }
 

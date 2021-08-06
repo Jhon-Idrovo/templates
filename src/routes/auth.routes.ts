@@ -5,7 +5,8 @@ import { Router } from "express";
 import * as AuthCtlr from "../controllers/auth.controller";
 
 const router = Router();
-router.post("/signin", AuthCtlr.signInHandler);
+router.post("/signin", AuthCtlr.signInHandler);//the access token is send here
+router.post('/refresh-token')
 router.post("/signup", AuthCtlr.signUpHandler);
 router.post("/create-admin", AuthCtlr.createAdminHandler);
 
