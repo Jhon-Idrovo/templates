@@ -2,27 +2,72 @@
  * logic for handling requests
  */
 
-import { NextFunction } from "express";
-export function getProdutHandler(
+import { NextFunction, Request, Response } from "express";
+import { ProductIfc, ProductPutBody } from "../../interfaces/products";
+import Product from "../models/Product";
+//models
+export async function getAllProductsHandler(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  console.log("getting product");
+  const products = await Product.find();
+  res.json({ products });
 }
-// export function getProdutHandler(req:Request, res:Response, next:NextFunction) {
-
-// }
-export function putProductHandler(
+export async function getProdutHandler(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  console.log("create product");
+  const { id } = req.params;
+  console.log("getting product", id);
+  const product = await Product.findById(id);
+  res.json({ product });
 }
-
-export function patchProdutHandler(
+// export async function getProdutHandler(req:Request, res:Response, next:NextFunction) { }
+export async function deleteProdutHandler(
   req: Request,
   res: Response,
   next: NextFunction
-) {}
+) {
+  try {
+    const product = await Product.findById(req.params.id);
+    product ? await product.delete() : null;
+    res.status(200).send();
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+}
+export async function postProductHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  console.log("creating product");
+  const { category, price, imgUri, name } =
+    req.body as unknown as ProductPutBody;
+  const newProduct = new Product({ ...req.body });
+  try {
+    const savedProduct = await newProduct.save();
+    res.status(201).json({ product: savedProduct });
+  } catch (errors) {
+    res.status(400).json({ errors });
+  }
+}
+
+export async function putProdutHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const product = await Product.findById(req.params.id);
+    Object.keys(req.body).map((key) =>
+      product ? (product[key] = req.body[key]) : null
+    );
+    await product?.save();
+    res.status(200).json({ product });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+}
