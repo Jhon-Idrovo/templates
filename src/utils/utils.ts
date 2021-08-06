@@ -1,4 +1,5 @@
 import jwt, { Secret } from "jsonwebtoken";
+import { tokenLifetime } from "../config";
 /**
  *
  * @param userId the generated user id
@@ -6,7 +7,7 @@ import jwt, { Secret } from "jsonwebtoken";
  */
 export function generateClientToken(userId: string) {
   return jwt.sign({ userId }, process.env.JWT_TOKEN_SECRET as Secret, {
-    expiresIn: 360000,
+    expiresIn: tokenLifetime,
   });
 }
 /**
