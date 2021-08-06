@@ -5,7 +5,8 @@
 import { NextFunction, Request, Response } from "express";
 import Role from "../models/Role";
 import User from "../models/User";
-import { generateAccessToken } from "../utils/utils";
+import RefreshToken from "../models/Token";
+import { generateAccessToken, generateRefreshToken } from "../utils/utils";
 /**
  * Verifies username and password against the database. If good, returns an object
  * with an access token and refresh token. The user roles are send in the payload of the
@@ -24,17 +25,28 @@ export async function signInHandler(
     const user = await User.findOne({ username }).populate("roles");
     if (user) {
       //compare passwords
-      return (await user.comparePassword(user.password, password))
-        ? res.status(200).json({
+      if (await user.comparePassword(user.password, password)) {
+        try {
+          const refreshToken = generateRefreshToken(user._id);
+          await new RefreshToken({
+            token: refreshToken,
+            userID: user._id,
+          }).save();
+          return res.status(200).json({
             accessToken: generateAccessToken(
               user._id,
               user.roles.map((role) => role.name)
             ),
+            refreshToken,
             //this is optional, you should not rely on this to grant access because it's easy to modify
             //use the access token payload instead
             roles: user.roles.map((role) => role.name),
-          })
-        : res.json({ error: "Invalid password", token: null });
+          });
+        } catch (error) {
+          return res.status(403).json({ error });
+        }
+      }
+      return res.json({ error: "Invalid password", token: null });
     }
   } catch (error) {
     return res.status(400).json({ error });
