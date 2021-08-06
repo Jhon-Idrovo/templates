@@ -3,6 +3,7 @@ export declare interface UserIfc {
   username: string;
   password: string;
   email: string;
+  roles: [{ name: string; _id: string }];
   comparePassword: Function;
 }
 

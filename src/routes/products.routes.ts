@@ -4,12 +4,15 @@
 
 import { RequestHandler, Router } from "express";
 import * as ProductsCtlr from "../controllers/products.controller";
+import { verifyTokenMiddleware } from "../middlewares/verifyToken";
 const router = Router();
 router.get(
   "/",
   ProductsCtlr.getAllProductsHandler as unknown as RequestHandler
 );
 router.get("/:id", ProductsCtlr.getProdutHandler as unknown as RequestHandler);
+//with authentication
+router.use(verifyTokenMiddleware);
 router.post(
   "/create",
   ProductsCtlr.postProductHandler as unknown as RequestHandler

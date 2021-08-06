@@ -29,7 +29,7 @@ userSchema.methods.comparePassword = async (
   savedPassword: string,
   tipedPassword: string
 ) => {
-  return await bcrypt.compare(savedPassword, tipedPassword);
+  return await bcrypt.compare(tipedPassword, savedPassword);
 };
 
 export default model<UserIfc, UserModel>("User", userSchema);

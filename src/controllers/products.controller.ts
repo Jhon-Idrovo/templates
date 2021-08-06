@@ -33,9 +33,9 @@ export async function deleteProdutHandler(
   try {
     const product = await Product.findById(req.params.id);
     product ? await product.delete() : null;
-    res.status(200).send();
+    return res.status(200).send();
   } catch (error) {
-    res.status(400).json({ error });
+    return res.status(400).json({ error });
   }
 }
 export async function postProductHandler(
@@ -49,9 +49,9 @@ export async function postProductHandler(
   const newProduct = new Product({ ...req.body });
   try {
     const savedProduct = await newProduct.save();
-    res.status(201).json({ product: savedProduct });
+    return res.status(201).json({ product: savedProduct });
   } catch (errors) {
-    res.status(400).json({ errors });
+    return res.status(400).json({ errors });
   }
 }
 
@@ -66,8 +66,8 @@ export async function putProdutHandler(
       product ? (product[key] = req.body[key]) : null
     );
     await product?.save();
-    res.status(200).json({ product });
+    return res.status(200).json({ product });
   } catch (error) {
-    res.status(400).json({ error });
+    return res.status(400).json({ error });
   }
 }
