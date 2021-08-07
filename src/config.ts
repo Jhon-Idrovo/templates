@@ -1,2 +1,2 @@
-export const accessTokenLifetime = 3600;
-export const refreshTokenLifetime = 30000;
+export const accessTokenLifetime = "1h";
+export const refreshTokenLifetime = "72h";

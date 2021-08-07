@@ -11,6 +11,7 @@ import {
   generateRefreshToken,
   verifyToken,
 } from "../utils/utils";
+import { triggerAsyncId } from "async_hooks";
 /**
  * Verifies username and password against the database. If good, returns an object
  * with an access token and refresh token. The user roles are send in the payload of the
@@ -60,24 +61,36 @@ export async function signInHandler(
  * @param res
  * @param next
  */
-export async function getRefreshTokenHandler(
+export async function getAccessTokenHandler(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  const refreshToken = req.headers["x-refresh-token"];
-  if (refreshToken) {
-    //validate the refresh token
-    const decoded = verifyToken(refreshToken as string);
+  try {
+    const refreshToken = req.headers["x-refresh-token"];
+    if (refreshToken) {
+      //validate the refresh token
+      //first validation
+      const decoded = verifyToken(refreshToken as string);
 
-    if (decoded) {
-      //send another acces token to the client
-      res
-        .status(200)
-        .json({
-          accessToken: generateAccessToken(decoded.userID, decoded.roles),
+      if (decoded) {
+        //second validation
+        const dbToken = await RefreshToken.findOne({
+          token: refreshToken as string,
         });
+        //third validation
+        const isSameUser = dbToken?.userID === decoded.userID;
+        if (dbToken && isSameUser) {
+          //send another acces token to the client
+          return res.status(200).json({
+            accessToken: generateAccessToken(decoded.userID, decoded.roles),
+          });
+        }
+      }
+      return res.json({ error: "Invalid refresh token" });
     }
+  } catch (error) {
+    return res.status(400).json({ error });
   }
 }
 /**
@@ -90,7 +103,22 @@ export async function signOutHandler(
   req: Request,
   res: Response,
   next: NextFunction
-) {}
+) {
+  const refreshToken = req.headers["x-refresh-token"];
+  try {
+    if (refreshToken) {
+      //retrieve the token from the database and delete it
+      //we could store the refresh token id on the access token as payload
+      const tokenDoc = await RefreshToken.findOne({
+        token: refreshToken as string,
+      });
+      await tokenDoc?.delete();
+      return res.status(200);
+    }
+  } catch (error) {
+    return res.status(400).json({ error });
+  }
+}
 /**
  * Given a username, email and password, creates a new user assgining it a 'User' role
  * returns a jwt to the server or an error
