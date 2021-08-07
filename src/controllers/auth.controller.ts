@@ -11,7 +11,7 @@ import {
   generateRefreshToken,
   verifyToken,
 } from "../utils/utils";
-import { triggerAsyncId } from "async_hooks";
+
 /**
  * Verifies username and password against the database. If good, returns an object
  * with an access token and refresh token. The user roles are send in the payload of the
@@ -78,8 +78,9 @@ export async function getAccessTokenHandler(
         const dbToken = await RefreshToken.findOne({
           token: refreshToken as string,
         });
+
         //third validation
-        const isSameUser = dbToken?.userID === decoded.userID;
+        const isSameUser = dbToken?.userID.toString() === decoded.userID;
         if (dbToken && isSameUser) {
           //send another acces token to the client
           return res.status(200).json({
@@ -93,6 +94,7 @@ export async function getAccessTokenHandler(
     return res.status(400).json({ error });
   }
 }
+
 /**
  * Deletes the refresh token from the database and invalidates the access token.
  * @param req
@@ -119,6 +121,7 @@ export async function signOutHandler(
     return res.status(400).json({ error });
   }
 }
+
 /**
  * Given a username, email and password, creates a new user assgining it a 'User' role
  * returns a jwt to the server or an error
@@ -154,6 +157,7 @@ export async function signUpHandler(
     return res.status(400).json({ error });
   }
 }
+
 /**
  * Given the email, username, password and correct admin access password,
  * it creates a new user with a role of "Admin"

@@ -4,13 +4,17 @@ import { TokenInterface, TokenPayloadInterface } from "../../interfaces/token";
 import { accessTokenLifetime, refreshTokenLifetime } from "../config";
 /**
  *
- * @param userId the generated user id
+ * @param userID the generated user id
  * @returns jwt access token with user roles and id as payload
  */
-export function generateAccessToken(userId: string, roles: RoleName[]) {
-  return jwt.sign({ userId, roles }, process.env.JWT_TOKEN_SECRET as Secret, {
-    expiresIn: accessTokenLifetime,
-  });
+export function generateAccessToken(userID: string, roles: RoleName[]) {
+  return jwt.sign(
+    { userID, roles } as TokenPayloadInterface,
+    process.env.JWT_TOKEN_SECRET as Secret,
+    {
+      expiresIn: accessTokenLifetime,
+    }
+  );
 }
 /**
  * Verifies the given access or refresh token.
@@ -26,8 +30,12 @@ export function verifyToken(token: string) {
   }
 }
 
-export function generateRefreshToken(userId: string, roles: RoleName[]) {
-  return jwt.sign({ userId, roles }, process.env.JWT_TOKEN_SECRET as Secret, {
-    expiresIn: refreshTokenLifetime,
-  });
+export function generateRefreshToken(userID: string, roles: RoleName[]) {
+  return jwt.sign(
+    { userID, roles } as TokenPayloadInterface,
+    process.env.JWT_TOKEN_SECRET as Secret,
+    {
+      expiresIn: refreshTokenLifetime,
+    }
+  );
 }
