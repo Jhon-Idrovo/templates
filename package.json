@@ -1,6 +1,6 @@
 {
-  "name": "Express-Typescript",
-  "version": "1.0.0",
+  "name": "Express-Typescript-MongoDB",
+  "version": "3.0.0",
   "main": "index.js",
   "repository": "https://github.com/Jhon-Idrovo/templates.git",
   "author": "Jhon Idrovo <jhonidrovo3@gmail.com>",

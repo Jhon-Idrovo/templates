@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 //base URL. Standard form
-const version = 1;
+const version = 3;
 const basePath = `/api/v${version}`;
 app.use(`${basePath}/auth`, authRouter);
 app.use(`${basePath}/users`, userRouter);

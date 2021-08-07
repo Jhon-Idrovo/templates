@@ -4,7 +4,8 @@
   - Roles
   - Authentication through password
   - Authorization through JWT access and refresh tokens
-- Endpoints (base url: api/v1/)
+    refresh token is stored on a cookie/localstorage and send only when needed
+- Endpoints (base url: api/v3/)
   - auth/
     - signin
     - signup
@@ -13,7 +14,5 @@
     - create-admin
       For this we need to pass the CREATE_ADMIN_PASSWORD in the request body
 
-DRAWBACKS OF THIS APPROACH
-
-- scalability
-  we can't split the server easily because we're storing the refresh token in it. What happens if the user changes location and the application now connects to another instance of the server? We could share the information across all instances of the app, but that's an overhead. In order to minimize the overhead we can store not the refresh token but a list of the blacklisted ones. This is done in V3.
+DRAWBACKS
+If an access or refresh token is stolen we can't verify that the user sending the request is the same as the owner of the token.
