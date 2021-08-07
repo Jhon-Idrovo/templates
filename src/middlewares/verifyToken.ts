@@ -11,5 +11,5 @@ export function verifyTokenMiddleware(
   console.log(token, isValid);
 
   if (isValid) return next();
-  return res.json({ error: "Authentication failed" });
+  return res.json({ error: "Authorization failed" });
 }

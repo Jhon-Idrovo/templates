@@ -11,7 +11,7 @@ router.get(
   ProductsCtlr.getAllProductsHandler as unknown as RequestHandler
 );
 router.get("/:id", ProductsCtlr.getProdutHandler as unknown as RequestHandler);
-//with authentication
+//with authorization
 router.use(verifyTokenMiddleware);
 router.post(
   "/create",
