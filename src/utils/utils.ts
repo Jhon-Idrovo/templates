@@ -1,32 +1,33 @@
 import jwt, { Secret } from "jsonwebtoken";
 import { RoleName } from "../../interfaces/roles";
+import { TokenInterface, TokenPayloadInterface } from "../../interfaces/token";
 import { accessTokenLifetime, refreshTokenLifetime } from "../config";
 /**
  *
  * @param userId the generated user id
  * @returns jwt access token with user roles and id as payload
  */
-export function generateAccessToken(userId: string, role: RoleName[]) {
-  return jwt.sign({ userId }, process.env.JWT_TOKEN_SECRET as Secret, {
+export function generateAccessToken(userId: string, roles: RoleName[]) {
+  return jwt.sign({ userId, roles }, process.env.JWT_TOKEN_SECRET as Secret, {
     expiresIn: accessTokenLifetime,
   });
 }
 /**
- *
+ * Verifies the given access or refresh token.
  * @param token jwt token issued previously
  * @returns payload if the token is valid. Otherwise, false.
  */
 export function verifyToken(token: string) {
   try {
     const payload = jwt.verify(token, process.env.JWT_TOKEN_SECRET as Secret);
-    return payload;
+    return payload as TokenPayloadInterface;
   } catch (error) {
     return false;
   }
 }
 
-export function generateRefreshToken(userId: string) {
-  return jwt.sign({ userId }, process.env.JWT_TOKEN_SECRET as Secret, {
+export function generateRefreshToken(userId: string, roles: RoleName[]) {
+  return jwt.sign({ userId, roles }, process.env.JWT_TOKEN_SECRET as Secret, {
     expiresIn: refreshTokenLifetime,
   });
 }

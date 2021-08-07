@@ -6,7 +6,11 @@ import { NextFunction, Request, Response } from "express";
 import Role from "../models/Role";
 import User from "../models/User";
 import RefreshToken from "../models/Token";
-import { generateAccessToken, generateRefreshToken } from "../utils/utils";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyToken,
+} from "../utils/utils";
 /**
  * Verifies username and password against the database. If good, returns an object
  * with an access token and refresh token. The user roles are send in the payload of the
@@ -27,25 +31,20 @@ export async function signInHandler(
     if (user) {
       //compare passwords
       if (await user.comparePassword(user.password, password)) {
-        try {
-          const refreshToken = generateRefreshToken(user._id);
-          await new RefreshToken({
-            token: refreshToken,
-            userID: user._id,
-          }).save();
-          return res.status(200).json({
-            accessToken: generateAccessToken(
-              user._id,
-              user.roles.map((role) => role.name)
-            ),
-            refreshToken,
-            //this is optional, you should not rely on this to grant access because it's easy to modify
-            //use the access token payload instead
-            roles: user.roles.map((role) => role.name),
-          });
-        } catch (error) {
-          return res.status(403).json({ error });
-        }
+        const userRoles = user.roles.map((role) => role.name);
+
+        const refreshToken = generateRefreshToken(user._id, userRoles);
+        await new RefreshToken({
+          token: refreshToken,
+          userID: user._id,
+        }).save();
+        return res.status(200).json({
+          accessToken: generateAccessToken(user._id, userRoles),
+          refreshToken,
+          //this is optional, you should not rely on this to grant access because it's easy to modify
+          //use the access token payload instead
+          roles: userRoles,
+        });
       }
       return res.json({ error: "Invalid password", token: null });
     }
@@ -68,8 +67,30 @@ export async function getRefreshTokenHandler(
 ) {
   const refreshToken = req.headers["x-refresh-token"];
   if (refreshToken) {
+    //validate the refresh token
+    const decoded = verifyToken(refreshToken as string);
+
+    if (decoded) {
+      //send another acces token to the client
+      res
+        .status(200)
+        .json({
+          accessToken: generateAccessToken(decoded.userID, decoded.roles),
+        });
+    }
   }
 }
+/**
+ * Deletes the refresh token from the database and invalidates the access token.
+ * @param req
+ * @param res
+ * @param next
+ */
+export async function signOutHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {}
 /**
  * Given a username, email and password, creates a new user assgining it a 'User' role
  * returns a jwt to the server or an error
@@ -94,13 +115,11 @@ export async function signUpHandler(
       roles: [userRole?._id],
     }).save();
     user.populate("roles");
-    const refreshToken = generateRefreshToken(user._id);
+    const userRoles = user.roles.map((role) => role.name);
+    const refreshToken = generateRefreshToken(user._id, userRoles);
     await new RefreshToken({ token: refreshToken, userID: user._id }).save();
     return res.status(201).json({
-      accessToken: generateAccessToken(
-        user._id,
-        user.roles.map((role) => role.name)
-      ),
+      accessToken: generateAccessToken(user._id, userRoles),
       refreshToken,
     });
   } catch (error) {
