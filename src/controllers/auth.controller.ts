@@ -5,7 +5,7 @@
 import { NextFunction, Request, Response } from "express";
 import Role from "../models/Role";
 import User from "../models/User";
-import RefreshToken from "../models/Token";
+import BlacklistedToken from "../models/Token";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -35,10 +35,6 @@ export async function signInHandler(
         const userRoles = user.roles.map((role) => role.name);
 
         const refreshToken = generateRefreshToken(user._id, userRoles);
-        await new RefreshToken({
-          token: refreshToken,
-          userID: user._id,
-        }).save();
         return res.status(200).json({
           accessToken: generateAccessToken(user._id, userRoles),
           refreshToken,
@@ -66,32 +62,29 @@ export async function getAccessTokenHandler(
   res: Response,
   next: NextFunction
 ) {
-  try {
-    const refreshToken = req.headers["x-refresh-token"];
-    if (refreshToken) {
-      //validate the refresh token
-      //first validation
-      const decoded = verifyToken(refreshToken as string);
+  const refreshToken = req.headers["x-refresh-token"];
+  if (refreshToken) {
+    //validate the refresh token
+    //first validation
+    const decoded = verifyToken(refreshToken as string);
 
-      if (decoded) {
-        //second validation
-        const dbToken = await RefreshToken.findOne({
-          token: refreshToken as string,
+    if (decoded) {
+      //second validation
+      const dbToken = await BlacklistedToken.findOne({
+        token: refreshToken as string,
+      }).catch(() => null);
+
+      //a third validation could be neccesary to verify that the user requesting the
+      //new token is the same as the user registered in it. This is important since
+      //the autorization middleware uses that information to identify the user.
+      if (!dbToken) {
+        //send another acces token to the client
+        return res.status(200).json({
+          accessToken: generateAccessToken(decoded.userID, decoded.roles),
         });
-
-        //third validation
-        const isSameUser = dbToken?.userID.toString() === decoded.userID;
-        if (dbToken && isSameUser) {
-          //send another acces token to the client
-          return res.status(200).json({
-            accessToken: generateAccessToken(decoded.userID, decoded.roles),
-          });
-        }
       }
-      return res.json({ error: "Invalid refresh token" });
     }
-  } catch (error) {
-    return res.status(400).json({ error });
+    return res.json({ error: "Invalid refresh token" });
   }
 }
 
@@ -107,19 +100,20 @@ export async function signOutHandler(
   next: NextFunction
 ) {
   const refreshToken = req.headers["x-refresh-token"];
+  const payload = refreshToken ? verifyToken(refreshToken as string) : null;
   try {
-    if (refreshToken) {
-      //retrieve the token from the database and delete it
-      //we could store the refresh token id on the access token as payload
-      const tokenDoc = await RefreshToken.findOne({
-        token: refreshToken as string,
-      });
-      await tokenDoc?.delete();
+    if (payload) {
+      //blacklist the refresh token
+      const newBlacklistedTkn = await new BlacklistedToken({
+        token: refreshToken,
+        userID: payload.userID,
+      }).save();
       return res.status(200);
     }
   } catch (error) {
     return res.status(400).json({ error });
   }
+  return res.status(400).json({ error: "Invalid refresh token" });
 }
 
 /**
@@ -136,7 +130,7 @@ export async function signUpHandler(
 ) {
   try {
     const { username, password, email } = req.body;
-    //we could hardcode the role's id but if it gets deleted we would have a problem
+    //we could hardcode the role's id but if it gets deleted/modified we would have a problem
     const userRole = await Role.findOne({ name: "User" });
     const user = await new User({
       username,
@@ -148,7 +142,6 @@ export async function signUpHandler(
     user.populate("roles");
     const userRoles = user.roles.map((role) => role.name);
     const refreshToken = generateRefreshToken(user._id, userRoles);
-    await new RefreshToken({ token: refreshToken, userID: user._id }).save();
     return res.status(201).json({
       accessToken: generateAccessToken(user._id, userRoles),
       refreshToken,
