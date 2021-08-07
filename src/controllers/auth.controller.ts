@@ -10,7 +10,8 @@ import { generateAccessToken, generateRefreshToken } from "../utils/utils";
 /**
  * Verifies username and password against the database. If good, returns an object
  * with an access token and refresh token. The user roles are send in the payload of the
- * access token.
+ * access token. The roles need to be decrypted only on the server because we can't share
+ * the decoding secret safely with the client.
  * @param req
  * @param res
  * @param next
@@ -83,6 +84,7 @@ export async function signUpHandler(
 ) {
   try {
     const { username, password, email } = req.body;
+    //we could hardcode the role's id but if it gets deleted we would have a problem
     const userRole = await Role.findOne({ name: "User" });
     const user = await new User({
       username,
@@ -92,11 +94,14 @@ export async function signUpHandler(
       roles: [userRole?._id],
     }).save();
     user.populate("roles");
+    const refreshToken = generateRefreshToken(user._id);
+    await new RefreshToken({ token: refreshToken, userID: user._id }).save();
     return res.status(201).json({
       accessToken: generateAccessToken(
         user._id,
         user.roles.map((role) => role.name)
       ),
+      refreshToken,
     });
   } catch (error) {
     return res.status(400).json({ error });
