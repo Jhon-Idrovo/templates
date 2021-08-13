@@ -3,7 +3,7 @@
  */
 
 import { NextFunction, Request, Response } from "express";
-import { ProductIfc, ProductPutBody } from "../../interfaces/products";
+import { ProductIfc, ProductPutBody } from "../models/interfaces/products";
 import Product from "../models/Product";
 //models
 export async function getAllProductsHandler(
