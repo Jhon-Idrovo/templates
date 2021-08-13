@@ -29,7 +29,12 @@ export function verifyToken(token: string) {
     return false;
   }
 }
-
+/**
+ *
+ * @param userID to be send as payload
+ * @param roles to be send as payload
+ * @returns a JWT token. Expiration time determined by the configuration file.
+ */
 export function generateRefreshToken(userID: string, roles: RoleName[]) {
   return jwt.sign(
     { userID, roles } as TokenPayloadInterface,

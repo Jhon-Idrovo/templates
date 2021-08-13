@@ -28,7 +28,7 @@ export async function signInHandler(
 ) {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ username }).populate("roles");
+    const user = await User.findOne({ username }).populate("roles").exec();
     if (user) {
       //compare passwords
       if (await user.comparePassword(user.password, password)) {
@@ -38,15 +38,19 @@ export async function signInHandler(
         return res.status(200).json({
           accessToken: generateAccessToken(user._id, userRoles),
           refreshToken,
-          //this is optional, you should not rely on this to grant access because it's easy to modify
-          //use the access token payload instead
-          roles: userRoles,
+          //this is optional, you should not rely on this to grant access to any
+          //protected resorce on the client because it's easy to modify.
+          //And we can't very the signature on the client.
+          //Instead, use the access token payload on the server.
+          //roles: userRoles,
         });
+      } else {
+        return res.status(400).json({ error: "Invalid password", token: null });
       }
-      return res.json({ error: "Invalid password", token: null });
     }
+    return res.status(400).json({ error: "User not found" });
   } catch (error) {
-    return res.status(400).json({ error });
+    return res.status(400).json({ error: (error as Error).message });
   }
 }
 
