@@ -73,14 +73,16 @@ export async function getAccessTokenHandler(
     const decoded = verifyToken(refreshToken as string);
 
     if (decoded) {
-      //second validation
+      //second validation: See if the token is blacklisted
       const dbToken = await BlacklistedToken.findOne({
         token: refreshToken as string,
       }).catch(() => null);
-
-      //a third validation could be neccesary to verify that the user requesting the
-      //new token is the same as the user registered in it. This is important since
-      //the autorization middleware uses that information to identify the user.
+      /**a third validation could be neccesary to verify that the user requesting the
+       * new token is the same as the user registered in it. This is important since
+       * the autorization middleware uses that information to identify the user.
+       * A user cannot use its refresh token to request an access token for another
+       * client since we return the latter with the same userID.
+       */
       if (!dbToken) {
         //send another acces token to the client
         return res.status(200).json({
@@ -88,6 +90,7 @@ export async function getAccessTokenHandler(
         });
       }
     }
+    //the token is expired or blacklisted
     return res.json({ error: "Invalid refresh token" });
   }
 }
