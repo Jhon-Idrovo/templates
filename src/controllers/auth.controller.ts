@@ -90,6 +90,9 @@ export async function getAccessTokenHandler(
 
 /**
  * Deletes the refresh token from the database and invalidates the access token.
+ * This method is optional since deleting the tokens on the client logs out
+ * succesfully. This method is more needed when someone steals a refresh token.
+ * In this case, the user should request the log out througth this method.
  * @param req
  * @param res
  * @param next
