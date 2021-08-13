@@ -16,3 +16,7 @@
 
 DRAWBACKS
 If an access or refresh token is stolen we can't verify that the user sending the request is the same as the owner of the token.
+
+TODO
+
+- Set error messages on auth responses. They should be ready for being displayed on the client directly.
