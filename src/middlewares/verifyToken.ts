@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { verifyToken } from "../utils/utils";
+import { verifyToken } from "../utils/tokens";
 /**
  * Verify the access token. If valid include the payload in the req's body.
  * If not, return an "Authorization failed" error message to the client.
