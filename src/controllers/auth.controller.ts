@@ -10,7 +10,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
   verifyToken,
-} from "../utils/utils";
+} from "../utils/tokens";
 
 /**
  * Verifies username and password against the database. If good, returns an object
