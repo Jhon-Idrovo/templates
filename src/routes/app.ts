@@ -8,11 +8,14 @@ import morgan from "morgan";
 import authRouter from "./auth.routes";
 import productRouter from "./products.routes";
 import userRouter from "./user.routes";
+
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
+app.use();
+
 //base URL. Standard form
 const version = 3;
 const basePath = `/api/v${version}`;

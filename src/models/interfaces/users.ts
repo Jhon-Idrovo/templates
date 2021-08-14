@@ -1,6 +1,8 @@
 import { Model } from "mongoose";
 import { RoleName } from "./roles";
+export declare type AuthMethod = "google" | "facebook" | "twitter";
 export declare interface UserIfc {
+  authMethod: AuthMethod;
   username: string;
   password: string;
   email: string;

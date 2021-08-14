@@ -1,7 +1,7 @@
 import jwt, { Secret } from "jsonwebtoken";
 import { RoleName } from "../models/interfaces/roles";
 import { TokenPayloadInterface } from "../models/interfaces/token";
-import { accessTokenLifetime, refreshTokenLifetime } from "../config";
+import { accessTokenLifetime, refreshTokenLifetime } from "../config/config";
 /**
  *
  * @param userID the generated user id

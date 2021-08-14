@@ -2,6 +2,7 @@ import { model, Schema } from "mongoose";
 import { UserIfc, UserModel } from "./interfaces/users";
 import bcrypt from "bcryptjs";
 const userSchema = new Schema<UserIfc, UserModel>({
+  authMethod: String,
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
