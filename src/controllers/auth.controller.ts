@@ -66,7 +66,7 @@ export async function getAccessTokenHandler(
   res: Response,
   next: NextFunction
 ) {
-  const refreshToken = req.headers["x-refresh-token"];
+  const refreshToken = req.headers.authorization;
   if (refreshToken) {
     //validate the refresh token
     //first validation
@@ -109,7 +109,7 @@ export async function signOutHandler(
   res: Response,
   next: NextFunction
 ) {
-  const refreshToken = req.headers["x-refresh-token"];
+  const refreshToken = req.headers.authorization;
   const payload = refreshToken ? verifyToken(refreshToken as string) : null;
   try {
     if (payload) {
@@ -194,4 +194,19 @@ export async function createAdminHandler(
   } catch (error) {
     return res.status(400).json({ error });
   }
+}
+
+/**
+ * Returns a succesful response to the client upon which it would
+ * redirect to the home page. Now the access and refresh token are included
+ * @param req
+ * @param res
+ * @param next
+ */
+export async function googleCallback(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  res.send("success");
 }

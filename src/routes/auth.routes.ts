@@ -3,6 +3,7 @@
  */
 import { Router } from "express";
 import passport from "passport";
+import { googleRedirectUrl } from "../config/passport";
 import * as AuthCtlr from "../controllers/auth.controller";
 
 const router = Router();
@@ -12,12 +13,15 @@ router.post("/signup", AuthCtlr.signUpHandler);
 router.post("/signout", AuthCtlr.signOutHandler);
 router.post("/create-admin", AuthCtlr.createAdminHandler);
 //sign in with Google
-router.get("/google", passport.authenticate("oauth2"));
+//scopes https://developers.google.com/identity/protocols/oauth2/scopes?authuser=1#google-sign-in
 router.get(
-  "/google/callback",
-  passport.authenticate("oauth2"),
-  async (req, res, next) => {
-    console.log(req);
-  }
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+router.get(
+  //split it to take the base path out
+  googleRedirectUrl.split("auth")[1],
+  passport.authenticate("google"),
+  AuthCtlr.googleCallback
 );
 export default router;

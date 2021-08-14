@@ -3,6 +3,7 @@ import { UserIfc, UserModel } from "./interfaces/users";
 import bcrypt from "bcryptjs";
 const userSchema = new Schema<UserIfc, UserModel>({
   authMethod: String,
+  authProviderId: { type: String, require: false },
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
