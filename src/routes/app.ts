@@ -9,12 +9,15 @@ import authRouter from "./auth.routes";
 import productRouter from "./products.routes";
 import userRouter from "./user.routes";
 import { basePath } from "../config/config";
+import passport from "passport";
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
+//initialize passport
+app.use(passport.initialize());
 
 app.use(`${basePath}/auth`, authRouter);
 app.use(`${basePath}/users`, userRouter);

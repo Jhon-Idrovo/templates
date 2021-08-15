@@ -7,7 +7,7 @@ import { basePath } from "./config";
 import mongoose from "mongoose";
 import Role from "../models/Role";
 
-export const googleRedirectUrl = `http://localhost:8000${basePath}/auth/google/callback`;
+export const googleRedirectUrl = `http://localhost:8000${basePath}/auth/google`;
 passport.use(
   new GoogleStrategy(
     {
@@ -15,36 +15,44 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       callbackURL: googleRedirectUrl,
     },
-    async (
+    async function (
       accessToken: string,
       refreshToken: string,
-      profile,
+      userInfo,
       cb: Function
-    ) => {
-      console.log(profile);
+    ) {
+      console.log("user info: ", userInfo);
       const role = await Role.findOne({ name: "User" });
-      const { id, displayName, email, picture } = profile;
-      //profile.id
-      const _id = new mongoose.mongo.ObjectID(parseInt(id));
-      const user = await User.findById(_id).exec();
+      const { id, displayName, email, picture } = userInfo;
+      //we cannot user the id for generating an ObjectId because
+      //ObjectId(id) it generates a new one each time.
+      //both fields are unique
+      const user = await User.findOne({ email, username: displayName })
+        .populate("roles", "name")
+        .exec();
+      //user already exists
+      if (user) {
+        console.log("user found", user);
 
-      if (user) return cb(user);
+        return cb(null, user);
+      }
+      //create new user
       try {
         const newUser = await User.create({
           username: displayName,
-          //this needs to be an ObjectId instance?
-          _id,
           password: "empty",
           authMethod: "google",
           email,
           roles: role?._id,
         });
+        //populate to avoid refetching on the next function
+        newUser.populate("roles", "name");
+        return cb(null, newUser);
       } catch (error) {
         console.log(error);
 
-        return cb(error);
+        return cb(error, null);
       }
-      cb(user);
     }
   )
 );

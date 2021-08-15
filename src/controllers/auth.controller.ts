@@ -11,6 +11,9 @@ import {
   generateRefreshToken,
   verifyToken,
 } from "../utils/tokens";
+import passport from "passport";
+import { UserIfc } from "../models/interfaces/users";
+import { Document } from "mongoose";
 
 /**
  * Verifies username and password against the database. If good, returns an object
@@ -208,5 +211,31 @@ export async function googleCallback(
   res: Response,
   next: NextFunction
 ) {
-  res.send("success");
+  console.log("on callback 2", req);
+
+  return res.send("success");
+}
+export async function handleGoogle(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  console.log("here");
+
+  passport.authenticate(
+    "google",
+    { scope: ["profile", "email"], session: false },
+    function (err, user: UserIfc & Document<any, any, UserIfc>, userInfo) {
+      console.log(err, user, userInfo);
+      //roles are populated
+      const roles = user.roles.map(({ name }) => name);
+      const accesToken = generateAccessToken(user._id, roles);
+      const refreshToken = generateRefreshToken(user._id, roles);
+      console.log("redirecting");
+
+      return res.redirect(
+        `http://localhost:3000/redirect?at=${accesToken}&rt=${refreshToken}`
+      );
+    }
+  )(req, res, next);
 }
