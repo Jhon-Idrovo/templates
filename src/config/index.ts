@@ -8,9 +8,9 @@ import { initDatabaseConnection } from "./database";
 const a = dotenv.config();
 a ? console.log("Enviroment variables loaded") : console.log(a);
 
-import app from "./app";
+import app from "../routes/app";
 //run passport
-import "../config/passport";
+import "./passport";
 
 async function initServer() {
   await initDatabaseConnection();

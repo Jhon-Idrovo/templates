@@ -9,7 +9,7 @@
     "test": "jest",
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon --trace-warnings --config nodemon.json src/routes/index.ts"
+    "dev": "nodemon --trace-warnings --config nodemon.json src/config/index.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
