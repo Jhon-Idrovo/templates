@@ -4,10 +4,10 @@ import bcrypt from "bcryptjs";
 const userSchema = new Schema<UserIfc, UserModel>({
   authMethod: String,
   authProviderId: { type: String, require: false },
-  username: { type: String, required: true, unique: true },
+  username: { type: String, required: true, unique: false },
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  roles: [{ ref: "Role", type: Schema.Types.ObjectId }],
+  role: { ref: "Role", type: Schema.Types.ObjectId, require: true },
 });
 
 /**

@@ -7,7 +7,7 @@ import { basePath } from "./config";
 import mongoose from "mongoose";
 import Role from "../models/Role";
 
-export const googleRedirectUrl = `http://localhost:8000${basePath}/auth/google`;
+export const googleRedirectUrl = `${basePath}/auth/google`;
 passport.use(
   new GoogleStrategy(
     {
@@ -53,6 +53,41 @@ passport.use(
 
         return cb(error, null);
       }
+    }
+  )
+);
+export const facebookCbURL = `${basePath}/auth/facebook`;
+passport.use(
+  new FacebookStrategy(
+    {
+      callbackURL: facebookCbURL,
+      clientID: process.env.FACEBOOK_APP_ID as string,
+      clientSecret: process.env.FACEBOOK_APP_SECRET as string,
+      //https://developers.facebook.com/docs/graph-api/reference/v2.5/user
+      profileFields: ["id", "name", "picture", "email"],
+    },
+    async function (
+      accessToken: string,
+      refreshToken: string,
+      userInfo,
+      cb: Function
+    ) {
+      console.log("user info: ", userInfo);
+      const role = await Role.findOne({ name: "User" });
+    }
+  )
+);
+
+export const twitterCbURL = `${basePath}/auth/twitter`;
+passport.use(
+  new TwitterStrategy(
+    {
+      consumerKey: process.env.TWITTER_API_KEY as string,
+      consumerSecret: process.env.TWITTER_API_SECRET as string,
+      callbackURL: twitterCbURL,
+    },
+    function (token, tokenSecret, profile, cb) {
+      console.log(profile);
     }
   )
 );

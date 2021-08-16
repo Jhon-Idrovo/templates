@@ -7,7 +7,7 @@ export declare interface UserIfc {
   username: string;
   password: string;
   email: string;
-  roles: [{ name: RoleName; _id: string }];
+  role: { name: RoleName; _id: string };
   comparePassword: Function;
 }
 

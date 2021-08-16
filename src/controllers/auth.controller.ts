@@ -17,8 +17,8 @@ import { Document } from "mongoose";
 
 /**
  * Verifies username and password against the database. If good, returns an object
- * with an access token and refresh token. The user roles are send in the payload of the
- * access token. The roles need to be decrypted only on the server because we can't share
+ * with an access token and refresh token. The user role are send in the payload of the
+ * access token. The role need to be decrypted only on the server because we can't share
  * the decoding secret safely with the client.
  * @param req
  * @param res
@@ -30,22 +30,23 @@ export async function signInHandler(
   next: NextFunction
 ) {
   try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username }).populate("roles").exec();
+    //use email because the username is not unique when using OAuth providers
+    const { email, password } = req.body;
+    const user = await User.findOne({ email }).populate("role").exec();
     if (user) {
       //compare passwords
       if (await user.comparePassword(user.password, password)) {
-        const userRoles = user.roles.map((role) => role.name);
+        const userRole = user.role.name;
 
-        const refreshToken = generateRefreshToken(user._id, userRoles);
+        const refreshToken = generateRefreshToken(user._id, userRole);
         return res.status(200).json({
-          accessToken: generateAccessToken(user._id, userRoles),
+          accessToken: generateAccessToken(user._id, userRole),
           refreshToken,
           //this is optional, you should not rely on this to grant access to any
           //protected resorce on the client because it's easy to modify.
           //And we can't very the signature on the client.
           //Instead, use the access token payload on the server.
-          //roles: userRoles,
+          //role: userRole,
         });
       } else {
         return res.status(400).json({ error: "Invalid password", token: null });
@@ -89,7 +90,7 @@ export async function getAccessTokenHandler(
       if (!dbToken) {
         //send another acces token to the client
         return res.status(200).json({
-          accessToken: generateAccessToken(decoded.userID, decoded.roles),
+          accessToken: generateAccessToken(decoded.userID, decoded.role),
         });
       }
     }
@@ -150,17 +151,23 @@ export async function signUpHandler(
       email,
       //we don't need the await in this call but an error detects it as promise even if it is not
       password: await User.encryptPassword(password),
-      roles: [userRole?._id],
+      role: userRole?._id,
     }).save();
-    user.populate("roles");
-    const userRoles = user.roles.map((role) => role.name);
-    const refreshToken = generateRefreshToken(user._id, userRoles);
+    user.populate("role");
+    const newRole = user.role.name;
+    const refreshToken = generateRefreshToken(user._id, newRole);
     return res.status(201).json({
-      accessToken: generateAccessToken(user._id, userRoles),
+      accessToken: generateAccessToken(user._id, newRole),
       refreshToken,
     });
   } catch (error) {
-    return res.status(400).json({ error });
+    let errMsg = "";
+    if (error.name === "MongoError") {
+      error.code === 11000
+        ? (errMsg = "There already exists an account whit this email")
+        : null;
+    }
+    return res.status(400).json({ error: errMsg });
   }
 }
 
@@ -186,12 +193,12 @@ export async function createAdminHandler(
         email,
         //we don't need the await in this call but an error detects it as promise even if it is not
         password: await User.encryptPassword(password),
-        roles: [adminRole?._id],
+        role: adminRole?._id,
       }).save();
 
       return res
         .status(201)
-        .json({ accessToken: generateAccessToken(admin._id, ["Admin"]) });
+        .json({ accessToken: generateAccessToken(admin._id, "Admin") });
     }
     res.json({ error: "Admin access password invalid" });
   } catch (error) {
@@ -227,15 +234,38 @@ export async function handleGoogle(
     { scope: ["profile", "email"], session: false },
     function (err, user: UserIfc & Document<any, any, UserIfc>, userInfo) {
       console.log(err, user, userInfo);
-      //roles are populated
-      const roles = user.roles.map(({ name }) => name);
-      const accesToken = generateAccessToken(user._id, roles);
-      const refreshToken = generateRefreshToken(user._id, roles);
+      //role are populated
+      const role = user.role.name;
+      const accesToken = generateAccessToken(user._id, role);
+      const refreshToken = generateRefreshToken(user._id, role);
       console.log("redirecting");
 
       return res.redirect(
         `http://localhost:3000/redirect?at=${accesToken}&rt=${refreshToken}`
       );
     }
+  )(req, res, next);
+}
+
+export async function handleFacebook(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  passport.authenticate(
+    "facebook",
+    { session: false },
+    function (err, user: UserIfc & Document<any, any, UserIfc>, userInfo) {}
+  )(req, res, next);
+}
+export async function handleTwitter(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  passport.authenticate(
+    "twitter",
+    { session: false },
+    function (err, user: UserIfc & Document<any, any, UserIfc>, userInfo) {}
   )(req, res, next);
 }
