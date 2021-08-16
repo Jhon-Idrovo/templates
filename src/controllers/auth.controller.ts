@@ -142,8 +142,10 @@ export async function signUpHandler(
   res: Response,
   next: NextFunction
 ) {
+  console.log(req.body);
+
+  const { username, password, email } = req.body;
   try {
-    const { username, password, email } = req.body;
     //we could hardcode the role's id but if it gets deleted/modified we would have a problem
     const userRole = await Role.findOne({ name: "User" });
     const user = await new User({
@@ -159,15 +161,37 @@ export async function signUpHandler(
     return res.status(201).json({
       accessToken: generateAccessToken(user._id, newRole),
       refreshToken,
+      user,
     });
   } catch (error) {
-    let errMsg = "";
-    if (error.name === "MongoError") {
-      error.code === 11000
-        ? (errMsg = "There already exists an account whit this email")
-        : null;
+    console.log("Error on signup process:", error);
+
+    //determine the error
+    let errContent = { message: "" };
+    switch (error.name) {
+      case "MongoError":
+        switch (error.code) {
+          case 11000: //generally error 11000 is caused by existing records
+            //since there is only one unique field on User we can assume it's the cause
+            errContent = {
+              message:
+                "There already exists an account associated to this email",
+            };
+            break;
+
+          default:
+            errContent = {
+              message:
+                "An unidentified error happened. We are workin to solve it as soon as possible",
+            };
+            break;
+        }
+        break;
+      //normal node error
+      default:
+        break;
     }
-    return res.status(400).json({ error: errMsg });
+    return res.status(400).json({ error: errContent });
   }
 }
 
