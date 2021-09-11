@@ -2,10 +2,7 @@ A ready-to-go starter for creating Single Page Applications with React, Next.js,
 
 Readily configured to purge unneeded tailwind styles when building for production.
 
-Fully supports the PWA standard and installs a service worker when conditions are met.
+## REDUX
 
-Scores 100 in every lighthouse audit.
-
-Preconfigured to be deployed to Zeit Now (also with PWA support there!)
-
-Have fun!
+- Uses duck pattern for folder organization
+- A logger function is used which can be modified to work in production writing the logs to a server
