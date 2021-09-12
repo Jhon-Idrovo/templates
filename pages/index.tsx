@@ -1,7 +1,7 @@
 import Head from "next/head";
 
 import { useAppDispatch, useAppSelector } from "../store/hooks/hooks";
-import { getUser, logIn } from "../store/auth/user";
+import { fetchTodos, getUser, logIn } from "../store/auth/user";
 import { loadBugs } from "../store/entities/bugs";
 
 export default function Home() {
@@ -20,7 +20,9 @@ export default function Home() {
         <button onClick={() => dispatch(logIn("jhon", "lavacalola"))}>
           Log In
         </button>
-
+        <button onClick={() => dispatch(fetchTodos("param example"))}>
+          Press me{" "}
+        </button>
         <button onClick={() => dispatch(loadBugs())}> Load Bugs</button>
       </section>
     </>

@@ -8,3 +8,7 @@ Readily configured to purge unneeded tailwind styles when building for productio
 - A logger function is used which can be modified to work in production writing the logs to a server
 - All actions, selectors, slice and more related items are in one file for each slice. This goes along the principle of cohesion.
   Furthermore, it allows to not export things that are internal to that slice and should not be called outside that module.
+
+# Usage of createAsyncThunk
+
+I restricted the usage of this method due to the lack of flexibility to handle the response error message. If the request fails we simply dont get the response data. Obviously there are workarounds, but for me it's becoming messy.

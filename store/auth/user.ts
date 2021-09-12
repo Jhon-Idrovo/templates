@@ -1,9 +1,11 @@
 import {
   AnyAction,
+  createAsyncThunk,
   createSlice,
   Dispatch,
   PayloadAction,
 } from "@reduxjs/toolkit";
+import axiosInstance from "../../config/axiosInstance";
 import { LOG_IN_ENDPOINT } from "../../config/config";
 import { RootState } from "../configureStore";
 import { apiCallBegan } from "../middleware/api";
@@ -25,6 +27,18 @@ export const userInitialState: IUser = {
   error: "",
 };
 
+export const fetchTodos = createAsyncThunk(
+  "todos/fetchTodos",
+  async (param: string, thunkAPI) => {
+    console.log(param, thunkAPI);
+
+    const res = await axiosInstance.get(
+      "https://jsonplaceholder.typicode.com/tods"
+    );
+    return res.data;
+  }
+);
+
 export const userSlice = createSlice({
   name: "user",
   // `createSlice` will infer the state type from the `initialState` argument
@@ -45,6 +59,17 @@ export const userSlice = createSlice({
       user.error = action.payload;
       user.loading = false;
     },
+  },
+  extraReducers: (builder) => {
+    console.log("builder", builder);
+    builder.addCase(fetchTodos.fulfilled, (state, action) => {
+      console.log("state", state);
+      console.log("action", action);
+    });
+    builder.addCase(fetchTodos.rejected, (state, action) => {
+      console.log("state", state);
+      console.log("action", action);
+    });
   },
 });
 
