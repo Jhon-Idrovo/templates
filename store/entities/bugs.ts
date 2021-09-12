@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { apiCallBegan } from "../api";
+import { RootState } from "../configureStore";
+import { apiCallBegan } from "../middleware/api";
 
 export declare interface IBug {
   id: string;
@@ -34,12 +35,15 @@ export const { bugsRecieved, bugsRequested, bugsRequestFailed } =
   bugsSlice.actions;
 export default bugsSlice.reducer;
 // ACTION GENERATORS
-const loadBugs: any = () =>
+export const loadBugs: any = () =>
   apiCallBegan({
     url: "/bugs",
     data: {},
     method: "POST",
-    onSuccess: bugsRecieved.type,
     onStart: bugsRequested.type,
+    onSuccess: bugsRecieved.type,
     onError: bugsRequestFailed.type,
   });
+
+// SELECTORS
+export const getBugs = () => (state: RootState) => state;
