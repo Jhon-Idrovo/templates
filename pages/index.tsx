@@ -1,9 +1,11 @@
 import Head from "next/head";
-import { useSelector, useDispatch } from "react-redux";
-import { logIn, logOut } from "../store/user";
+
+import { useAppDispatch, useAppSelector } from "../store/hooks/hooks";
+import { getUser, logIn, logOut } from "../store/user";
 export default function Home() {
-  const user = useSelector((state) => state.auth.user);
-  const dispatch = useDispatch();
+  const user = useAppSelector(getUser);
+
+  const dispatch = useAppDispatch();
   return (
     <>
       <Head>
