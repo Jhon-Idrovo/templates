@@ -6,3 +6,4 @@ Readily configured to purge unneeded tailwind styles when building for productio
 
 - Uses duck pattern for folder organization
 - A logger function is used which can be modified to work in production writing the logs to a server
+# redux-course
