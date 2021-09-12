@@ -1,14 +1,13 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Middleware } from "redux";
 import { API_BASE_URL } from "../../config/config";
-import store, { RootState } from "../configureStore";
+import { apiCallBegan, apiCallFailed, apiCallSucceded } from "../api";
+import { RootState } from "../configureStore";
 
 export declare interface IApiPayload {
   url: string;
   method: "POST" | "GET";
   data: Object;
-  onSuccess: string;
-  onError: string;
 }
 export declare interface IApiAction {
   type: string;
@@ -21,11 +20,11 @@ const api: any = () => {
     (next) =>
     async (action: IApiAction) => {
       // do not execute if no call
-      if (action.type !== "apiCallBegan") return next(action);
+      if (action.type !== apiCallBegan.type) return next(action);
 
       // to log the action in dev tools
       next(action);
-      const { url, method, onError, onSuccess, data } = action.payload;
+      const { url, method, data } = action.payload;
       try {
         const r = await axios.request({
           baseURL: API_BASE_URL,
@@ -33,9 +32,10 @@ const api: any = () => {
           method,
           data,
         });
-        dispatch({ type: onSuccess, payload: r.data });
-      } catch (error) {}
-      dispatch({ type: onError });
+        dispatch(apiCallSucceded(r));
+      } catch (error) {
+        dispatch(apiCallFailed(error as AxiosError));
+      }
     };
   return a;
 };

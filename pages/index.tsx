@@ -1,7 +1,9 @@
 import Head from "next/head";
+import { apiCallBegan } from "../store/api";
 
 import { useAppDispatch, useAppSelector } from "../store/hooks/hooks";
 import { getUser, logIn, logOut } from "../store/user";
+
 export default function Home() {
   const user = useAppSelector(getUser);
 
@@ -19,6 +21,19 @@ export default function Home() {
           Log In
         </button>
         <button onClick={() => dispatch(logOut())}>Log Out</button>
+        <button
+          onClick={() =>
+            dispatch(
+              apiCallBegan({
+                url: "/kjl",
+                method: "POST",
+                data: {},
+              })
+            )
+          }
+        >
+          Api Call
+        </button>
       </section>
     </>
   );
