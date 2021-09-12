@@ -1,6 +1,7 @@
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import Reducer from "./mainReducer";
 import logger from "./middleware/logger";
+import api from "./middleware/api";
 
 /**
  * Calls configure store and returns it
@@ -10,7 +11,7 @@ const store = configureStore({
   reducer: Reducer,
   // as https://redux.js.org/tutorials/essentials/part-7-rtk-query-basics#configuring-the-store
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(logger("console")),
+    getDefaultMiddleware().concat(logger("console"), api()),
 });
 // Inferring these types from the store itself means that they correctly update as you add more state slices or modify middleware settings.
 // https://redux.js.org/tutorials/typescript-quick-start#define-root-state-and-dispatch-types
