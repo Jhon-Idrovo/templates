@@ -21,7 +21,7 @@ export default function Home() {
           Log In
         </button>
         <button onClick={() => dispatch(logOut())}>Log Out</button>
-        <button onClick={() => dispatch(loadBugs())}>Api Call</button>
+        <button onClick={() => dispatch(loadBugs())}> Load Bugs</button>
       </section>
     </>
   );

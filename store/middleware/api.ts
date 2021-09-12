@@ -10,6 +10,7 @@ export declare interface IApiPayload {
   url: string;
   method: "POST" | "GET";
   data: Object;
+
   onSuccess?: string;
   onError?: string;
   onStart?: string;
