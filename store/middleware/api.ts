@@ -1,18 +1,27 @@
 import axios, { AxiosError } from "axios";
 import { Middleware } from "redux";
 import { API_BASE_URL } from "../../config/config";
-import { apiCallBegan, apiCallFailed, apiCallSucceded } from "../api";
+
 import { RootState } from "../configureStore";
+import { createAction } from "@reduxjs/toolkit";
+import { AxiosResponse } from "axios";
 
 export declare interface IApiPayload {
   url: string;
   method: "POST" | "GET";
   data: Object;
+  onSuccess?: string;
+  onError?: string;
+  onStart?: string;
 }
 export declare interface IApiAction {
   type: string;
   payload: IApiPayload;
 }
+
+export const apiCallBegan = createAction<IApiPayload>("api/callBegan");
+export const apiCallSucceded = createAction<AxiosResponse>("api/callSucceded");
+export const apiCallFailed = createAction<AxiosError>("api/callFailed");
 
 const api: any = () => {
   const a: Middleware<{}, RootState> =
@@ -22,9 +31,11 @@ const api: any = () => {
       // do not execute if no call
       if (action.type !== apiCallBegan.type) return next(action);
 
+      const { url, method, data, onError, onStart, onSuccess } = action.payload;
+      // dispatch start action
+      if (onStart) dispatch({ type: onStart });
       // to log the action in dev tools
       next(action);
-      const { url, method, data } = action.payload;
       try {
         const r = await axios.request({
           baseURL: API_BASE_URL,
@@ -32,12 +43,17 @@ const api: any = () => {
           method,
           data,
         });
-        // we could add handling for specific success actions by passing the onSuccess property on the payload
-        dispatch(apiCallSucceded(r));
+        // General handler
+        dispatch(apiCallSucceded(r.data));
+        // Specific handler
+        if (onSuccess) dispatch({ type: onSuccess, payload: r.data });
       } catch (error) {
+        // General handler
         dispatch(
           apiCallFailed((error as AxiosError).response?.data.error.message)
         );
+        // Specific handler
+        dispatch({ type: onError });
       }
     };
   return a;
