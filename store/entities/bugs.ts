@@ -60,7 +60,7 @@ export const loadBugs: any =
     const { lastFetch } = getState().entities.bugs;
     if (lastFetch + BUGS_CACHING_TIMEOUT > Date.now())
       return dispatch(bugsUseCached);
-    dispatch(
+    return dispatch(
       apiCallBegan({
         url: "/bugs",
         data: {},

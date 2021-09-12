@@ -61,7 +61,9 @@ const api: any = () => {
         // Specific handler
         dispatch({
           type: onError,
-          payload: (error as AxiosError).response?.data.error.message,
+          payload:
+            (error as AxiosError).response?.data.error.message ||
+            (error as Error).message,
         });
       }
     };

@@ -1,7 +1,7 @@
 import Head from "next/head";
 
 import { useAppDispatch, useAppSelector } from "../store/hooks/hooks";
-import { getUser, logIn, logOut } from "../store/auth/user";
+import { getUser, logIn } from "../store/auth/user";
 import { loadBugs } from "../store/entities/bugs";
 
 export default function Home() {
@@ -17,10 +17,10 @@ export default function Home() {
       <section className="game-board">
         <div className="">{}</div>
         <div>Name:{user.name}</div>
-        <button onClick={() => dispatch(logIn({ name: "Jhon", id: "1" }))}>
+        <button onClick={() => dispatch(logIn("jhon", "lavacalola"))}>
           Log In
         </button>
-        <button onClick={() => dispatch(logOut())}>Log Out</button>
+
         <button onClick={() => dispatch(loadBugs())}> Load Bugs</button>
       </section>
     </>

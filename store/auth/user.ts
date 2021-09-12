@@ -1,14 +1,29 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  AnyAction,
+  createSlice,
+  Dispatch,
+  PayloadAction,
+} from "@reduxjs/toolkit";
+import { LOG_IN_ENDPOINT } from "../../config/config";
 import { RootState } from "../configureStore";
+import { apiCallBegan } from "../middleware/api";
+import { AppThunk } from "../middleware/thunkMiddleware";
 
 export declare interface IUser {
   name: string;
   id: string;
+  loading: boolean;
+  error: string;
 }
 /**
  * If errors occuer with type casting see:https://redux.js.org/tutorials/typescript-quick-start#define-slice-state-and-action-types
  */
-export const userInitialState: IUser = { name: "", id: "" };
+export const userInitialState: IUser = {
+  name: "",
+  id: "",
+  loading: false,
+  error: "",
+};
 
 export const userSlice = createSlice({
   name: "user",
@@ -16,19 +31,45 @@ export const userSlice = createSlice({
   initialState: userInitialState,
   reducers: {
     // Use the PayloadAction type to declare the contents of `action.payload`
-    logIn: (state, action: PayloadAction<IUser>) => {
-      console.log(state);
-
-      return { ...action.payload };
+    userLoading: (state) => {
+      state.loading = true;
     },
-    logOut: () => {
+    userLogged: (state, action: PayloadAction<IUser>) => {
+      state.loading = false;
+      return action.payload;
+    },
+    userLoggedOut: () => {
       return { ...userInitialState };
+    },
+    userLogInFailed: (user, action: PayloadAction<string>) => {
+      user.error = action.payload;
+      user.loading = false;
     },
   },
 });
 
+const { userLogged, userLoggedOut, userLoading, userLogInFailed } =
+  userSlice.actions;
+export default userSlice.reducer;
+
 // Other code such as selectors can use the imported `RootState` type
 // automatically memoized
+
+//SELECTORS
 export const getUser = (state: RootState) => state.auth.user;
-export const { logIn, logOut } = userSlice.actions;
-export default userSlice.reducer;
+
+// FUNCTION ACTIONS
+export const logIn =
+  (username: string, password: string): AppThunk =>
+  (dispatch) => {
+    dispatch(userLoading());
+    dispatch(
+      apiCallBegan({
+        url: LOG_IN_ENDPOINT,
+        data: { username, password },
+        method: "POST",
+        onSuccess: userLogged.type,
+        onError: userLogInFailed.type,
+      })
+    );
+  };
