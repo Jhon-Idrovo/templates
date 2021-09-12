@@ -23,7 +23,12 @@ export declare interface IApiAction {
 export const apiCallBegan = createAction<IApiPayload>("api/callBegan");
 export const apiCallSucceded = createAction<AxiosResponse>("api/callSucceded");
 export const apiCallFailed = createAction<AxiosError>("api/callFailed");
-
+/**
+ * On success dispatches the onSuccess action with payload:response.data
+ * On error dispatches the onError action with payload:error message
+ *
+ * @returns
+ */
 const api: any = () => {
   const a: Middleware<{}, RootState> =
     ({ dispatch }) =>
@@ -54,7 +59,10 @@ const api: any = () => {
           apiCallFailed((error as AxiosError).response?.data.error.message)
         );
         // Specific handler
-        dispatch({ type: onError });
+        dispatch({
+          type: onError,
+          payload: (error as AxiosError).response?.data.error.message,
+        });
       }
     };
   return a;

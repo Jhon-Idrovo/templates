@@ -33,15 +33,24 @@ const bugsSlice = createSlice({
       const { bugsList } = action.payload;
       bugs.list = bugsList;
     },
-    bugsRequestFailed: (bugs) => {
+    bugsRequestFailed: (bugs, action: PayloadAction<string>) => {
       bugs.loading = false;
+      bugs.error = action.payload;
     },
     bugsUseCached: (bugs) => bugs,
+    bugAdded: (bugs, action: PayloadAction<IBug>) => {
+      bugs.list.push(action.payload);
+    },
   },
 });
-
-export const { bugsRecieved, bugsRequested, bugsRequestFailed, bugsUseCached } =
-  bugsSlice.actions;
+// do not export this to avoid coupling. This actions are only internal
+const {
+  bugsRecieved,
+  bugsRequested,
+  bugsRequestFailed,
+  bugsUseCached,
+  bugAdded,
+} = bugsSlice.actions;
 export default bugsSlice.reducer;
 // FUNCTION ACTIONS
 export const loadBugs: any =
@@ -61,5 +70,22 @@ export const loadBugs: any =
       })
     );
   };
+export const saveBug =
+  (bug: IBug) => (dispatch: Dispatch<AnyAction>, getState: () => RootState) => {
+    dispatch(bugsRequested);
+    // call to api to save the bug
+    dispatch(
+      apiCallBegan({
+        url: "bugs/save",
+        method: "POST",
+        data: bug,
+      })
+    );
+    // update locally
+    dispatch(bugAdded(bug));
+    // if cache is expired update all bugs
+    dispatch(loadBugs());
+  };
+
 // SELECTORS
 export const getBugs = () => (state: RootState) => state.entities.bugs;
