@@ -2,7 +2,7 @@ import Head from "next/head";
 import { apiCallBegan } from "../store/api";
 
 import { useAppDispatch, useAppSelector } from "../store/hooks/hooks";
-import { getUser, logIn, logOut } from "../store/user";
+import { getUser, logIn, logOut } from "../store/auth/user";
 
 export default function Home() {
   const user = useAppSelector(getUser);

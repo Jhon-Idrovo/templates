@@ -32,9 +32,12 @@ const api: any = () => {
           method,
           data,
         });
+        // we could add handling for specific success actions by passing the onSuccess property on the payload
         dispatch(apiCallSucceded(r));
       } catch (error) {
-        dispatch(apiCallFailed(error as AxiosError));
+        dispatch(
+          apiCallFailed((error as AxiosError).response?.data.error.message)
+        );
       }
     };
   return a;

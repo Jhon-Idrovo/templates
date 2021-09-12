@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "./configureStore";
-import { useAppSelector } from "./hooks/hooks";
+import { RootState } from "../configureStore";
+import { useAppSelector } from "../hooks/hooks";
 
 export declare interface IUser {
   name: string;
