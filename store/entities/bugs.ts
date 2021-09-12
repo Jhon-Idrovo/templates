@@ -70,22 +70,21 @@ export const loadBugs: any =
       })
     );
   };
-export const saveBug =
-  (bug: IBug) => (dispatch: Dispatch<AnyAction>, getState: () => RootState) => {
-    dispatch(bugsRequested);
-    // call to api to save the bug
-    dispatch(
-      apiCallBegan({
-        url: "bugs/save",
-        method: "POST",
-        data: bug,
-      })
-    );
-    // update locally
-    dispatch(bugAdded(bug));
-    // if cache is expired update all bugs
-    dispatch(loadBugs());
-  };
+export const saveBug = (bug: IBug) => (dispatch: Dispatch<AnyAction>) => {
+  dispatch(bugsRequested);
+  // call to api to save the bug
+  dispatch(
+    apiCallBegan({
+      url: "bugs/save",
+      method: "POST",
+      data: bug,
+    })
+  );
+  // update locally
+  dispatch(bugAdded(bug));
+  // if cache is expired update all bugs
+  dispatch(loadBugs());
+};
 
 // SELECTORS
 export const getBugs = () => (state: RootState) => state.entities.bugs;
