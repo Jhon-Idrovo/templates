@@ -26,7 +26,10 @@ export const userInitialState: IUser = {
   loading: false,
   error: "",
 };
-
+export declare interface IUserResponse {
+  id: IUser["id"];
+  name: IUser["name"];
+}
 export const userSlice = createSlice({
   name: "user",
   // `createSlice` will infer the state type from the `initialState` argument
@@ -70,10 +73,8 @@ export const logIn =
     dispatch(userLoading());
     // call the api
     try {
-      const res = await axiosInstance.get(
-        "https://jsonplaceholder.typicode.com/users/1"
-      );
-      const { id, name } = res.data;
+      const res = await axiosInstance.get("/users/1");
+      const { id, name } = res.data as IUserResponse;
       // pass the error to override previous errors
       return dispatch(userLogged({ id, name, error: "", loading: false }));
     } catch (error) {
