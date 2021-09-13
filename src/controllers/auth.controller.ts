@@ -144,19 +144,18 @@ export async function signUpHandler(
 ) {
   console.log(req.body);
 
-  const { username, password, email } = req.body;
+  const requestUser = { ...req.body, authMethod: "built-in" } as UserIfc;
   // validate agains joi
-  const { error, value } = User.joiValidate(req.body);
+  const { error, value } = User.joiValidate(requestUser);
   if (error) return res.status(400).json({ error });
 
   try {
     //we could hardcode the role's id but if it gets deleted/modified we would have a problem
     const userRole = await Role.findOne({ name: "User" });
     const user = await new User({
-      username,
-      email,
+      ...requestUser,
       //we don't need the await in this call but an error detects it as promise even if it is not
-      password: await User.encryptPassword(password),
+      password: await User.encryptPassword(requestUser.password),
       role: userRole?._id,
     }).save();
     user.populate("role");

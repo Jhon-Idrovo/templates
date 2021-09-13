@@ -1,8 +1,8 @@
 import Joi from "joi";
 import { Model } from "mongoose";
 import { RoleName } from "./roles";
-export const AUTH_METHODS = ["google", "facebook", "twitter"];
-export declare type AuthMethod = "google" | "facebook" | "twitter";
+export const AUTH_METHODS = ["google", "facebook", "twitter", "built-in"];
+export declare type AuthMethod = "google" | "facebook" | "twitter" | "built-in";
 export declare interface UserIfc {
   authMethod: AuthMethod;
   authProviderId?: string;
