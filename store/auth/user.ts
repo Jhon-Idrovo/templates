@@ -75,9 +75,9 @@ export const logIn =
       );
       const { id, name } = res.data;
       // pass the error to override previous errors
-      dispatch(userLogged({ id, name, error: "", loading: false }));
+      return dispatch(userLogged({ id, name, error: "", loading: false }));
     } catch (error) {
-      dispatch(
+      return dispatch(
         userLogInFailed((error as AxiosError).response?.data.error.message)
       );
     }

@@ -61,10 +61,12 @@ export const loadAlbums = (): AppThunk => async (dispatch, getState) => {
       `https://jsonplaceholder.typicode.com/users/${userId}/albums`
     );
 
-    dispatch(fetchSucceeded(res.data));
+    return dispatch(fetchSucceeded(res.data));
   } catch (error) {
     console.log(error);
-    dispatch(fetchFailed((error as AxiosError).response?.data.error.message));
+    return dispatch(
+      fetchFailed((error as AxiosError).response?.data.error.message)
+    );
   }
 };
 
