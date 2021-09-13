@@ -145,6 +145,10 @@ export async function signUpHandler(
   console.log(req.body);
 
   const { username, password, email } = req.body;
+  // validate agains joi
+  const { error, value } = User.joiValidate(req.body);
+  if (error) return res.status(400).json({ error });
+
   try {
     //we could hardcode the role's id but if it gets deleted/modified we would have a problem
     const userRole = await Role.findOne({ name: "User" });
@@ -163,7 +167,7 @@ export async function signUpHandler(
       refreshToken,
       user,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log("Error on signup process:", error);
 
     //determine the error

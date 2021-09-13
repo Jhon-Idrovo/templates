@@ -7,7 +7,7 @@ export default async function initializeRoles() {
 
     const adminRole = new Role({ name: "Admin" });
     const userRole = new Role({ name: "User" });
-
+    const guestRole = new Role({ name: "Guest" });
     await Promise.all([adminRole.save(), userRole.save()]);
     console.log("Roles initialized succesfully");
   } catch (error) {

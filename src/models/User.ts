@@ -1,5 +1,6 @@
 import { model, Schema } from "mongoose";
-import { UserIfc, UserModel } from "./interfaces/users";
+import joi from "joi";
+import { AUTH_METHODS, UserIfc, UserModel } from "./interfaces/users";
 import bcrypt from "bcryptjs";
 const userSchema = new Schema<UserIfc, UserModel>({
   authMethod: String,
@@ -32,6 +33,24 @@ userSchema.methods.comparePassword = async (
   tipedPassword: string
 ) => {
   return await bcrypt.compare(tipedPassword, savedPassword);
+};
+
+userSchema.statics.joiValidate = (user: UserIfc) => {
+  const joiSchema = joi.object({
+    username: joi.string().min(8).max(30).required(),
+    password: joi
+      .string()
+      .min(8)
+      .max(30)
+      .regex(/[a-zA-Z0-9]{8,30}/)
+      .required(),
+    email: joi.string().email().required(),
+    authMethod: joi
+      .string()
+      .required()
+      .allow(...AUTH_METHODS),
+  });
+  return joiSchema.validate(user);
 };
 
 export default model<UserIfc, UserModel>("User", userSchema);

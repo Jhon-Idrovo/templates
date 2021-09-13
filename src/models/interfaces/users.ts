@@ -1,5 +1,7 @@
+import Joi from "joi";
 import { Model } from "mongoose";
 import { RoleName } from "./roles";
+export const AUTH_METHODS = ["google", "facebook", "twitter"];
 export declare type AuthMethod = "google" | "facebook" | "twitter";
 export declare interface UserIfc {
   authMethod: AuthMethod;
@@ -13,4 +15,5 @@ export declare interface UserIfc {
 
 export declare interface UserModel extends Model<UserIfc> {
   encryptPassword(password: string): string;
+  joiValidate(user: UserIfc): Joi.ValidationResult;
 }
