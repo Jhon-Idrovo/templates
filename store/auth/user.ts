@@ -5,6 +5,7 @@ import {
   Dispatch,
   PayloadAction,
 } from "@reduxjs/toolkit";
+import { AxiosError } from "axios";
 import axiosInstance from "../../config/axiosInstance";
 import { LOG_IN_ENDPOINT } from "../../config/config";
 import { RootState } from "../configureStore";
@@ -68,11 +69,17 @@ export const logIn =
     // start the loading
     dispatch(userLoading());
     // call the api
-    const res = await axiosInstance.get(
-      "https://jsonplaceholder.typicode.com/users/1"
-    );
-    const { id, name } = res.data;
-    // pass the error to override previous errors
-    dispatch(userLogged({ id, name, error: "", loading: false }));
+    try {
+      const res = await axiosInstance.get(
+        "https://jsonplaceholder.typicode.com/users/1"
+      );
+      const { id, name } = res.data;
+      // pass the error to override previous errors
+      dispatch(userLogged({ id, name, error: "", loading: false }));
+    } catch (error) {
+      dispatch(
+        userLogInFailed((error as AxiosError).response?.data.error.message)
+      );
+    }
   };
 export const logOut = () => userLoggedOut();
