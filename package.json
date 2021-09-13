@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "coverage": "jest --coverage",
     "test": "jest --watch",
     "dev": "next dev",
     "build": "next build",

@@ -7,8 +7,11 @@ import axiosInstance from "../config/axiosInstance";
 
 // UNIT TESTS
 describe("User", () => {
+  let fakeAxios: MockAdapter;
+  beforeEach(() => {
+    fakeAxios = new MockAdapter(axiosInstance);
+  });
   test("should log in user", async () => {
-    const fakeAxios = new MockAdapter(axiosInstance);
     // change the HTTP method for real use
     fakeAxios.onGet(LOG_IN_ENDPOINT).reply(200, USER_SERVER_RESPONSE);
     // log in is an async function

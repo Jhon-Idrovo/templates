@@ -12,3 +12,12 @@ Readily configured to purge unneeded tailwind styles when building for productio
 # Usage of createAsyncThunk
 
 I restricted the usage of this method due to the lack of flexibility to handle the response error message. If the request fails we simply dont get the response data. Obviously there are workarounds, but for me it's becoming messy.
+
+## TESTS
+
+# Testing Approach
+
+- Tests are directed to assert the behaviour, not implementation. That is, I check that the result of the whole system is the rigth one, rather than checking every piece.
+  This is better since reduces coupling between tests and implementation.
+
+- Tests follow the patter of AAA (Arrange, Act and Assert)
