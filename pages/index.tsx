@@ -1,11 +1,12 @@
 import Head from "next/head";
 
 import { useAppDispatch, useAppSelector } from "../store/hooks/hooks";
-import { fetchTodos, getUser, logIn } from "../store/auth/user";
-import { loadBugs } from "../store/entities/bugs";
+import { getUser, logIn, logOut } from "../store/auth/user";
+import { getAlbums, loadAlbums } from "../store/entities/albums";
 
 export default function Home() {
   const user = useAppSelector(getUser);
+  const albums = useAppSelector(getAlbums);
 
   const dispatch = useAppDispatch();
   return (
@@ -20,10 +21,9 @@ export default function Home() {
         <button onClick={() => dispatch(logIn("jhon", "lavacalola"))}>
           Log In
         </button>
-        <button onClick={() => dispatch(fetchTodos("param example"))}>
-          Press me{" "}
-        </button>
-        <button onClick={() => dispatch(loadBugs())}> Load Bugs</button>
+        <button onClick={() => dispatch(logOut())}>Log Out</button>
+        <button onClick={() => dispatch(loadAlbums())}>Press me </button>
+        {albums?.list && albums.list.map(({ title }) => <div>{title}</div>)}
       </section>
     </>
   );

@@ -1,7 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import Reducer from "./mainReducer";
 import logger from "./middleware/logger";
-import api from "./middleware/api";
 
 /**
  * Calls configure store and returns it

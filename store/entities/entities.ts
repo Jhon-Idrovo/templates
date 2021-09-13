@@ -1,4 +1,4 @@
 import { combineReducers } from "@reduxjs/toolkit";
-import bugsReducer from "./bugs";
+import albumsReducer from "./albums";
 
-export default combineReducers({ bugs: bugsReducer });
+export default combineReducers({ albums: albumsReducer });
