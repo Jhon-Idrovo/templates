@@ -2,12 +2,8 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import { Strategy as TwitterStrategy } from "passport-twitter";
 import { Strategy as FacebookStrategy } from "passport-facebook";
-import User from "../models/User";
-import { basePath } from "./config";
-import mongoose from "mongoose";
-import Role from "../models/Role";
-
-export const googleRedirectUrl = `${basePath}/auth/google`;
+import { getOrCreateUser } from "../utils/utils";
+export const googleRedirectUrl = `https://font-tester-api.herokuapp.com/api/v3/auth/google`;
 passport.use(
   new GoogleStrategy(
     {
@@ -22,32 +18,22 @@ passport.use(
       cb: Function
     ) {
       console.log("user info: ", userInfo);
-      const role = await Role.findOne({ name: "User" });
       const { id, displayName, email, picture } = userInfo;
-      //we cannot user the id for generating an ObjectId because
+      //we cannot use the id for generating an ObjectId because
       //ObjectId(id) it generates a new one each time.
-      //both fields are unique
-      const user = await User.findOne({ email, username: displayName })
-        .populate("roles", "name")
-        .exec();
-      //user already exists
-      if (user) {
-        console.log("user found", user);
-
-        return cb(null, user);
-      }
-      //create new user
+      //email is unique
       try {
-        const newUser = await User.create({
-          username: displayName,
-          password: "empty",
-          authMethod: "google",
+        const user = await getOrCreateUser(
           email,
-          roles: role?._id,
-        });
+          displayName,
+          "google",
+          "empty",
+          id
+        );
+
         //populate to avoid refetching on the next function
-        newUser.populate("roles", "name");
-        return cb(null, newUser);
+        await user.populate("role", "name").execPopulate();
+        return cb(null, user);
       } catch (error) {
         console.log(error);
 
@@ -56,7 +42,7 @@ passport.use(
     }
   )
 );
-export const facebookCbURL = `${basePath}/auth/facebook`;
+export const facebookCbURL = `https://font-tester-api.herokuapp.com/api/v3/auth/facebook/callback`;
 passport.use(
   new FacebookStrategy(
     {
@@ -72,55 +58,75 @@ passport.use(
       userInfo,
       cb: Function
     ) {
-      console.log("user info: ", userInfo);
-      const role = await Role.findOne({ name: "User" });
+      console.log("on passport strategy, user info: ", userInfo);
+      // get the user
+      //const user = getOrCreateUser()
+      const { displayName, id, emails } = userInfo;
+      try {
+        if (!emails)
+          return cb(
+            new Error("User doesn't have an email associated with its account")
+          );
+        const user = await getOrCreateUser(
+          emails[0].value,
+          displayName,
+          "facebook",
+          "facebook",
+          id
+        );
+        return cb(null, user);
+      } catch (error) {
+        console.log(error);
+        return cb(error, null);
+      }
     }
   )
 );
 
-export const twitterCbURL = `${basePath}/auth/twitter`;
+export const twitterCbURL = `https://font-tester-api.herokuapp.com/api/v3/auth/twitter/callback`;
 passport.use(
   new TwitterStrategy(
     {
       consumerKey: process.env.TWITTER_API_KEY as string,
       consumerSecret: process.env.TWITTER_API_SECRET as string,
       callbackURL: twitterCbURL,
+      includeEmail: true,
     },
-    function (token, tokenSecret, profile, cb) {
-      console.log(profile);
+    async function (token, tokenSecret, profile, cb) {
+      console.log("on passport. Profile:", profile);
+      const { displayName, emails, id } = profile;
+      try {
+        if (!emails)
+          return cb(
+            new Error("User doesn't have an email associated with its account"),
+            null
+          );
+        const user = await getOrCreateUser(
+          emails[0].value,
+          displayName,
+          "twitter",
+          "twitter",
+          id
+        );
+        //populate user
+        await user.populate("role").execPopulate();
+        return cb(null, user);
+      } catch (error) {
+        console.log(error);
+        return cb(error, null);
+      }
     }
   )
 );
-console.log("Passport initialized");
+// passport.serializeUser(function (user, done) {
+//   console.log(user);
 
-// passport.use(
-//   new Strategy(
-//     {
-//       clientID: process.env.GOOGLE_CLIENT_ID as string,
-//       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-//       authorizationURL: "https://www.example.com/oauth2/authorize",
-//       tokenURL: "https://www.example.com/oauth2/token",
-//       callbackURL: "http://localhost:3000/auth/example/callback",
-//     },
-//     async (
-//       accessToken: string,
-//       refreshToken: string,
-//       profile,
-//       cb: Function
-//     ) => {
-//       console.log(profile);
-//       const { id, displayName } = profile;
-//       const user = await User.findById(profile.id);
-//       if (user) return user;
-//       const newUser = User.create({
-//         username: displayName,
-//         //this needs to be an ObjectId instance?
-//         _id: id,
-//         password: "",
-//         authMethod: "google",
-//         email: "",
-//         roles: "",
-//       });
-//     }
-//   )
-// );
+//   done(null, (user as UserIfc)._id);
+// });
+
+// passport.deserializeUser(function (id, done) {
+//   User.findById(id, function (err, user) {
+//     done(err, user);
+//   });
+// });
+console.log("Passport initialized");

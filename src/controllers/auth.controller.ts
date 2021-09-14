@@ -14,6 +14,11 @@ import {
 import passport from "passport";
 import { UserIfc } from "../models/interfaces/users";
 import { Document } from "mongoose";
+import { CLIENT_URL } from "../config/config";
+import { RequestEnhanced, ResponseError } from "../models/interfaces/utils";
+import RecoveryCode from "../models/RecoveryCode";
+import { generateCode } from "../utils/utils";
+import { transporter } from "../config/nodemailer";
 
 /**
  * Verifies username and password against the database. If good, returns an object
@@ -30,10 +35,15 @@ export async function signInHandler(
   next: NextFunction
 ) {
   try {
-    //use email because the username is not unique when using OAuth providers
+    //use email because the username is not unique when using third party auth providers
     const { email, password } = req.body;
     const user = await User.findOne({ email }).populate("role").exec();
+
     if (user) {
+      if (user.authMethod !== "built-in")
+        throw new Error(
+          `This email is associated with a ${user.authMethod} account. Use that log in method`
+        );
       //compare passwords
       if (await user.comparePassword(user.password, password)) {
         const userRole = user.role.name;
@@ -48,9 +58,8 @@ export async function signInHandler(
           //Instead, use the access token payload on the server.
           //role: userRole,
         });
-      } else {
-        return res.status(400).json({ error: "Invalid password", token: null });
       }
+      throw new Error("Invalid password");
     }
     return res.status(400).json({ error: "User not found" });
   } catch (error) {
@@ -267,9 +276,7 @@ export async function handleGoogle(
       const refreshToken = generateRefreshToken(user._id, role);
       console.log("redirecting");
 
-      return res.redirect(
-        `http://localhost:3000/redirect?at=${accesToken}&rt=${refreshToken}`
-      );
+      return res.redirect(`${CLIENT_URL}/?at=${accesToken}&rt=${refreshToken}`);
     }
   )(req, res, next);
 }
@@ -279,20 +286,173 @@ export async function handleFacebook(
   res: Response,
   next: NextFunction
 ) {
-  passport.authenticate(
-    "facebook",
-    { session: false },
-    function (err, user: UserIfc & Document<any, any, UserIfc>, userInfo) {}
-  )(req, res, next);
+  console.log("handleFacebook REQUEST:------------------");
+  const user = req.user as UserIfc & Document<any, any, UserIfc>;
+  //roles are populated
+  const role = user.role.name;
+  const accesToken = generateAccessToken(user._id, role);
+  const refreshToken = generateRefreshToken(user._id, role);
+  console.log("redirecting");
+  if (role === "Guest") {
+    //redirect to complete signup (in case that payments are needed)
+    return res.redirect(
+      `${CLIENT_URL}/signup?at=${accesToken}&rt=${refreshToken}`
+    );
+  }
+  return res.redirect(`${CLIENT_URL}/?at=${accesToken}&rt=${refreshToken}`);
 }
 export async function handleTwitter(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  passport.authenticate(
-    "twitter",
-    { session: false },
-    function (err, user: UserIfc & Document<any, any, UserIfc>, userInfo) {}
-  )(req, res, next);
+  console.log("handleTwitter", req.user);
+  const user = req.user as UserIfc & Document<any, any, UserIfc>;
+  //roles are populated
+  const role = user.role.name;
+  const accesToken = generateAccessToken(user._id, role);
+  const refreshToken = generateRefreshToken(user._id, role);
+  console.log("redirecting", CLIENT_URL);
+  if (role === "Guest") {
+    //redirect to complete signup
+    return res.redirect(
+      `${CLIENT_URL}/signup?at=${accesToken}&rt=${refreshToken}`
+    );
+  }
+  return res.redirect(`${CLIENT_URL}/?at=${accesToken}&rt=${refreshToken}`);
+}
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
+export async function changePassword(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const { userID } = (req as RequestEnhanced).decodedToken;
+  const { newPassword } = req.body;
+  const user = await User.findById(userID);
+  if (!user)
+    return res.status(400).json({ error: { message: "User not found" } });
+  user.password = await User.encryptPassword(newPassword);
+  try {
+    await user.save();
+    return res.send();
+  } catch (error) {
+    console.log(error);
+
+    return res.status(400).json({
+      error: { message: "Unable to update", completeError: error },
+    } as ResponseError);
+  }
+}
+export async function deleteUser(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const { userID } = (req as RequestEnhanced).decodedToken;
+  try {
+    const user = await User.findById(userID);
+    if (!user)
+      return res.status(400).json({ error: { message: "User not found" } });
+    await user.delete();
+    res.send();
+  } catch (error) {
+    console.log(error);
+
+    return res.status(400).json({
+      error: { message: "Unable to update", completeError: error },
+    } as ResponseError);
+  }
+}
+export async function sendRecoveryCode(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user)
+    return res.status(400).json({ error: { message: "User not found" } });
+  const code = generateCode();
+  try {
+    await RecoveryCode.create({
+      userId: user._id,
+      // adjusting for changes in tiezones and more
+      iat: Date.now() - 86400000,
+      code,
+    });
+    console.log(user.email);
+
+    // const a = await SendgridClient.send({
+    //   to: { name: user.username, email: user.email },
+    //   from: { email: "font.tester.app@gmail.com", name: "Font Tester" },
+    //   templateId: "a9ba698b-cd40-441a-a6a2-1a7462d9f13c",
+    //   subject: "Recovery Code",
+    //   dynamicTemplateData: { name: user.username, code },
+    // });
+    // console.log(a);
+    await transporter.sendMail({
+      from: "'Font Tester' <font.tester.app@gmail.com>",
+      to: user.email,
+      subject: "Recovery Password",
+      html:
+        '<div style="width:100%;height:100%"><h1>Font Tester</h1><p>To continue with your account recovery process, please write the following code on our site.</p><h2>' +
+        code +
+        "</h2><p>If you were not expecting this message, please verify the security of your email account.</p></div>",
+    });
+
+    return res.send();
+  } catch (error: any) {
+    console.log(error.response.body);
+
+    return res.status(400).json({
+      error: {
+        message: "Unable to generate the code, please try again later",
+      },
+    });
+  }
+}
+export async function verifyRecoveryCode(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const { code, email } = req.body;
+
+  const recoveryCod = await RecoveryCode.findOne({ code });
+  if (!recoveryCod)
+    return res.status(400).json({
+      error: {
+        message:
+          "Sorry, we can't find that code, please try again or try a new code",
+      },
+    });
+  await recoveryCod
+    .populate("userId")
+    .populate({ path: "userId", populate: { path: "role" } })
+    .execPopulate();
+  console.log(recoveryCod.userId);
+  const {
+    _id,
+    role,
+    email: userEmail,
+    username,
+  } = recoveryCod.userId as unknown as UserIfc & Document<any, any, UserIfc>;
+  const accessToken = generateAccessToken(_id, role.name);
+  const refreshToken = generateRefreshToken(_id, role.name);
+  if (userEmail === email && recoveryCod.iat < Date.now()) {
+    recoveryCod.delete();
+    return res.json({
+      redirect: `/password-change/?at=${accessToken}&rt=${refreshToken}`,
+    });
+  }
+
+  return res.status(400).json({
+    error: { message: "Invalid code" },
+  });
 }

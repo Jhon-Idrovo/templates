@@ -1,14 +1,16 @@
 ## THIS TEMPLATE COUNTS WITH
 
-# CONFIGURE GOOGLE OAuth
+# Configure Google Auth
 
 - Read https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid?authuser=1
 - use the enviroment variables
-GOOGLE_CLIENT_ID = id 
-GOOGLE_CLIENT_SECRET = secret
+  GOOGLE_CLIENT_ID = id
+  GOOGLE_CLIENT_SECRET = secret
 
+# Configure nodemailer
 
 ## CHARACTERISTICS
+
 - Users with
   - Roles
   - Authentication through password
@@ -29,3 +31,23 @@ If an access or refresh token is stolen we can't verify that the user sending th
 TODO
 
 - Set error messages on auth responses. They should be ready for being displayed on the client directly.
+
+## Environment Variables
+
+DB_URI = mongodb+srv://...
+PORT = 8000
+JWT_TOKEN_SECRET = string secret
+CREATE_ADMIN_PASSWORD = string secret
+
+GOOGLE_CLIENT_ID =
+GOOGLE_CLIENT_SECRET =
+
+FACEBOOK_APP_ID =
+FACEBOOK_APP_SECRET =
+
+TWITTER_API_KEY =
+TWITTER_API_SECRET =
+
+<!-- For nodemailer -->
+
+GOOGLE_APP_KEY =
