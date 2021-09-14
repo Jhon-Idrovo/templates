@@ -9,6 +9,12 @@
 
 # Configure nodemailer
 
+Set the email and the APP_KEY environment variable
+
+# Configure passport
+
+Set the urls for callback
+
 ## CHARACTERISTICS
 
 - Users with
